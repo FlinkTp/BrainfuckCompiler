@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 const int defaultCodeLengthMaximum=100000;
 const int defaultRuntimeMemory=100000;
 const int defaultStackSize=100000;
@@ -26,9 +27,10 @@ int codeRunner(char *Code)
     unsigned char *MEMORY=(unsigned char *)calloc(cfg.RuntimeMemory,sizeof(unsigned char));
     unsigned char *pointerCurrent=MEMORY;
     int *STACK=(int *)calloc(cfg.Stacksize,sizeof(int));
+    int tempStack;
     while(*Code!='\0'&&memoryPointer>=0)
     {
-        if(memoryPointer>cfg.RuntimeMemory)
+        if(memoryPointer>=cfg.RuntimeMemory)
             return -1;
         switch(*Code)
         {
@@ -62,12 +64,17 @@ int codeRunner(char *Code)
             case ']':
                 if(stackPointer==-1)
                     return -3;
-                stackPointer--;
-                STACK--;
                 if(*pointerCurrent)
                 {
-                    codePointer=(*STACK)-1;
+                    codePointer=*(STACK-1)-1;
                     Code=codeBegin+codePointer;
+                    break;
+                }
+                tempStack=*(STACK-1);
+                while(*(STACK-1)==tempStack&&stackPointer!=-1)
+                {
+                    stackPointer--;
+                    STACK--;
                 }
                 break;
         }
@@ -109,17 +116,47 @@ void usage()
     puts("                  [-l <value> | --line <value>]");
     exit(1);
 }
+void setConfig(int opNum,char *value)
+{
+    int setValue=atoi(value);
+    if(setValue<=0)
+        usage();
+    switch(opNum)
+    {
+        case 0:
+            cfg.RuntimeMemory=setValue;
+            break;
+        case 1:
+            cfg.Stacksize=setValue;
+            break;
+        case 2:
+            cfgStatic.lineLengthMaximum=setValue;
+            break;
+        case 3:
+            cfgStatic.codeLengthMaximum=setValue;
+            break;
+    }
+}
 int main(int argc,char *argv[],char **envp)
 {
     cfg=(RuntimeConfig){.RuntimeMemory=defaultRuntimeMemory,.Stacksize=defaultStackSize};
     cfgStatic=(StaticConfig){.codeLengthMaximum=defaultCodeLengthMaximum,.lineLengthMaximum=defaultCodeLengthMaximum};
-    if(argc<=1)
+    if(argc<=1||argc&1)
         usage();
+    for(int argi=2;argi<argc;argi+=2)
+    {
+        bool flagMatch=0;
+        for(int i=0;i<argMapSize;++i)
+            if(strcmp(argv[argi],argKey[i])==0||strcmp(argv[argi],argValue[i])==0)
+                setConfig(i,argv[argi+1]),flagMatch=1;
+        if(!flagMatch)
+            usage();
+    }
     FILE *fp=fopen(argv[1],"r");
     if(fp==NULL)
     {
         printf("%s: Cannot open %s",argv[0],argv[1]);
-        return 1;
+        return 2;
     }
     char *input=(char *)calloc(cfgStatic.codeLengthMaximum,sizeof(char));
     char *code=(char *)calloc(cfgStatic.lineLengthMaximum,sizeof(char));

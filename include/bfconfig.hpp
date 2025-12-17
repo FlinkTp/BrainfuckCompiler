@@ -6,7 +6,10 @@
 #include <iostream>
 #include <stack>
 #include <memory>
+#include <cstring>
+#include <map>
 #include "bftext.hpp"
+class DebuggerRunPointer;
 struct constructCFG
 {
     int stksize=65535;
@@ -32,6 +35,24 @@ private:
     char operate;
     Instructer *jump_to;
 };
+struct watchStatus
+{
+    watchStatus(const unsigned char *rom,const unsigned char *roit,const size_t roms,
+        const std::vector<Instructer>::iterator rocp,const std::vector<Instructer>& roc,
+        const BFtext::ErrorType rost,const BFtext::ErrorContext rodt) :
+        romemory(rom),roitpos(roit),romemorySize(roms),rocodePointer(rocp),
+        rocommands(roc),rostatus(rost),rodetails(rodt) {}
+    watchStatus(const watchStatus& wscpy) : romemory(wscpy.romemory),roitpos(wscpy.roitpos),
+        romemorySize(wscpy.romemorySize),rocodePointer(wscpy.rocodePointer),
+        rocommands(wscpy.rocommands),rostatus(wscpy.rostatus),rodetails(wscpy.rodetails) {}
+    const unsigned char *romemory;
+    const unsigned char *roitpos;
+    const size_t romemorySize=0;
+    const std::vector<Instructer>::iterator rocodePointer;
+    const std::vector<Instructer>& rocommands;
+    const BFtext::ErrorType rostatus;
+    const BFtext::ErrorContext rodetails;
+};
 class RunnerPointer
 {
 public:
@@ -41,16 +62,35 @@ public:
             itpos=memory.get();
             memorySize=memsize;
             status=BFtext::ErrorType::normal;
+            std::memset(memory.get(),0,memsize);
         }
     explicit RunnerPointer(constructCFG cfg):
     RunnerPointer(cfg.stksize,cfg.codelen,cfg.memsize) {}
+    class DebugPermission
+    {
+        DebugPermission()=default;
+        friend class DebuggerRunPointer;
+    };
     int singlestep();
     int runAll();
-    void loadFile(const char *filePath,const char *progName);
+    bool loadFile(const char *filePath,const char *progName);
     BFtext::ErrorType get_status() const
     { return status; }
     BFtext::ErrorContext get_stat_detail() const
     { return details; }
+    watchStatus get_debugger_stat(DebugPermission) const
+    {
+        watchStatus ws(
+            memory.get(),
+            itpos,
+            memorySize,
+            codePointer,
+            commands,
+            status,
+            details
+        );
+        return ws;
+    }
 private:
     int stackSize;
     int codeLengthMaximum;
@@ -63,7 +103,8 @@ private:
     BFtext::ErrorType status;
     BFtext::ErrorContext details;
 };
-const int argMapSize=4;
-const char *argKey[]={"-m","-s","-l","-c"};
-const char *argValue[]={"--memory","--stack","--line","--code"};
+extern const int argMapSize;
+extern const char *argKey[];
+extern const char *argValue[];
+extern std::map<const char*,int> argumentTable;
 #endif

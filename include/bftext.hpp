@@ -1,8 +1,11 @@
 #ifndef _BFTEXT_
 #define _BFTEXT_
 #include <string>
+#include <iostream>
+#include <functional>
 namespace BFtext
 {
+    extern const std::string VERSION;
     enum class ErrorType
     {
         normal=-1,
@@ -18,24 +21,25 @@ namespace BFtext
         char *fileName=nullptr;
         int mismatchRow=-1;
         int mismatchCol=-1;
-    }null_content;
-    const std::string fileError=": Cannot open ";
-    const std::string memoryOverflow="[FATAL] memory OVERFLOW!";
-    const std::string stackOverflow="[FATAL] Segment Fault: Stack OVERFLOW!";
-    const std::string bucketCannotMatch="[FATAL] a \']\' cannot match \'[\'!";
-    const std::string errorTitle="!====================================!";
-    const std::string usagePrompt=
-    "usage: bfi <FILE> [-m <value> | --memory <value>]\n"
-    "                  [-c <value> | --code <value>]\n"
-    "                  [-s <value> | --stack <value>]\n"
-    "                  [-l <value> | --line <value>]";
-    const std::string exitTitle="-----------------------------------------------------------";
-    const std::string exitMessage="Brainfuck Program successfully Terminated! Exitcode = ";
-    const std::string *errMessage[]={&fileError,&usagePrompt,&memoryOverflow,
-        &stackOverflow,&bucketCannotMatch};
+    };
+    extern const BFtext::ErrorContext null_content;
+    extern const std::string fileError;
+    extern const std::string memoryOverflow;
+    extern const std::string stackOverflow;
+    extern const std::string bucketCannotMatch;
+    extern const std::string errorTitle;
+    extern const std::string usagePrompt;
+    extern const std::string exitTitle;
+    extern const std::string exitMessage;
+    extern const std::string *errMessage[];
+    extern const std::string debugPrompt;
+    extern const std::string debugUsage;
+    extern const std::string debugHelp;
     void printUsage(std::ostream& os=std::cerr);
+    void debuggerUsage(std::ostream& os=std::cerr);
     void printFatalError(ErrorType typeID,ErrorContext content=null_content,
         std::ostream& os=std::cerr);
     void terminateWithCode(unsigned char retcode,std::ostream& os=std::cout);
+    void triggerBreakpoint(size_t bpid,size_t i,size_t j,std::ostream& os=std::cout);
 }
 #endif

@@ -7,14 +7,17 @@ constructCFG concfg;
 std::map<std::string,CommandHandler> commandTable;
 static void initializeHandler()
 {
+    commandTable["a"]=
     commandTable["stat"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>&){
         dbgMain.showStatus();
     };
+    commandTable["s"]=
     commandTable["step"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>&){
         int tmp=dbgMain.runSingleStep();
         int ret=dbgMain.checkStatus(tmp);
         dbgMain.showStatus();
     };
+    commandTable["n"]=
     commandTable["next"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>&){
         int tmp=dbgMain.runSingleStep();
         int ret=dbgMain.checkStatus(tmp);
@@ -22,11 +25,13 @@ static void initializeHandler()
     commandTable["help"]=[&](DebuggerRunPointer&,const std::vector<std::string>&){
         std::cout<<BFtext::debugHelp<<std::endl;
     };
+    commandTable["x"]=
     commandTable["continue"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>&){
         int tmp=dbgMain.runContinue();
         int ret=dbgMain.checkStatus(tmp);
         dbgMain.showStatus();
     };
+    commandTable["b"]=
     commandTable["bp"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>& ins){
         if(ins.size()>2)
             std::cout<<"Invalid operation."<<std::endl;
@@ -39,6 +44,7 @@ static void initializeHandler()
                 std::cout<<"Invalid operation."<<std::endl;
         }
     };
+    commandTable["db"]=
     commandTable["debp"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>& ins){
         if(ins.size()>2)
             std::cout<<"Invalid operation."<<std::endl;
@@ -51,6 +57,7 @@ static void initializeHandler()
                 std::cout<<"Invalid operation."<<std::endl;
         }
     };
+    commandTable["w"]=
     commandTable["watch"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>& ins){
         if(ins.size()>2)
             std::cout<<"Invalid operation."<<std::endl;
@@ -63,6 +70,7 @@ static void initializeHandler()
                 std::cout<<"Invalid operation."<<std::endl;
         }
     };
+    commandTable["dw"]=
     commandTable["dewatch"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>& ins){
         if(ins.size()>2)
             std::cout<<"Invalid operation."<<std::endl;
@@ -153,17 +161,17 @@ static int processInstruction(DebuggerRunPointer& drp,std::string operation)
         return 1;
     auto tokens=splitTokens(operation);
     if(tokens.empty()) 
-        return 0;
+        return 2;
     auto it=commandTable.find(tokens[0]);
     if(it==commandTable.end()) 
     {
         std::cout<<"Unknown command: "<<tokens[0]<<std::endl;
-        return 0;
+        return 2;
     }
     if(drp.failed()&&tokens[0]!="stat")
     {
         std::cout<<"Invalid operation: program terminated or failed."<<std::endl;
-        return 0;
+        return 2;
     }
     it->second(drp,tokens);
     return 0;
@@ -178,12 +186,20 @@ int main(int argc,char *argv[])
         return -1;
     DebuggerRunPointer dbgMain(&dbgRunner);
     initializeHandler();
+    std::string prev("");
     while(true)
     {
         std::string input;
         std::cout<<BFtext::debugPrompt<<std::flush;
         std::getline(std::cin,input);
-        if(processInstruction(dbgMain,input))
+        if(input==""&&prev!="")
+            input=prev;
+        int procres=processInstruction(dbgMain,input);
+        if(procres==1)
             break;
+        else if(procres)
+            prev="";
+        else
+            prev=input;
     }
 }

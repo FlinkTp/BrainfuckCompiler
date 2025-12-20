@@ -20,20 +20,22 @@ class Instructer
 {
 public:
     Instructer(int row,int col,char op,Instructer* next=nullptr): 
-        rowNumber(row),colNumber(col),operate(op),jump_to(next) {}
+        rowNumber(row),colNumber(col),operate(op),matchBracket(next) {}
     char get_operate() const
     { return operate; }
     int get_row() const
     { return rowNumber; }
     int get_col() const
     { return colNumber; }
-    Instructer *get_next() const
-    { return jump_to; }
+    void set_match(Instructer *mat)
+    { matchBracket=mat; }
+    Instructer *get_match() const
+    { return matchBracket; }
 private:
     int rowNumber;
     int colNumber;
     char operate;
-    Instructer *jump_to;
+    Instructer *matchBracket;
 };
 struct watchStatus
 {
@@ -58,7 +60,7 @@ class RunnerPointer
 public:
     explicit RunnerPointer(int stksize,int codelen,size_t memsize):
         stackSize(stksize),codeLengthMaximum(codelen),
-        memory(std::make_unique<unsigned char[]>(memsize)) {
+        memory(std::make_unique<unsigned char[]>(memsize)),sourceCode("") {
             itpos=memory.get();
             memorySize=memsize;
             status=BFtext::ErrorType::normal;
@@ -100,6 +102,7 @@ private:
     std::vector<Instructer>::iterator codePointer;
     std::stack<decltype(codePointer)> bucketStack;
     std::vector<Instructer> commands;
+    std::string sourceCode;
     BFtext::ErrorType status;
     BFtext::ErrorContext details;
 };

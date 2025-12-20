@@ -8,7 +8,7 @@ namespace BFtext
     const std::string fileError=": Cannot open ";
     const std::string memoryOverflow="[FATAL] memory OVERFLOW!";
     const std::string stackOverflow="[FATAL] Segment Fault: Stack OVERFLOW!";
-    const std::string bucketCannotMatch="[FATAL] a \']\' cannot match \'[\'!";
+    const std::string bucketCannotMatch="[FATAL] Preprocessor: brackets cannot match!";
     const std::string errorTitle="!====================================!";
     const std::string usagePrompt=
     "usage: bfi <FILE> [-m <value> | --memory <value>]\n"
@@ -28,15 +28,15 @@ namespace BFtext
     const std::string debugHelp=
     "List of commands:\n\n"
     "help - get help from this page\n"
-    "bp <ip> - set breakpoint at ip\n"
-    "step - run a single step (an instruction)\n"
-    "next - run a single step (without showing status)\n"
-    "stat - show status of current runner\n"
-    "continue - run until meet a breakpoint or an exception\n"
-    "watch <mp> - watch a memory cell\n"
-    "debp <id> - remove a breakpoint with id\n"
-    "dewatch <id> - remove a watch with id\n"
-    "exit {or} quit - exit the debugging program";
+    "[bp | b] <ip> - set breakpoint at ip\n"
+    "[step | s] - run a single step (an instruction)\n"
+    "[next | n] - run a single step (without showing status)\n"
+    "[stat | a] - show status of current runner\n"
+    "[continue | x] - run until meet a breakpoint or an exception\n"
+    "[watch | w] <mp> - watch a memory cell\n"
+    "[debp | db] <id> - remove a breakpoint with id\n"
+    "[dewatch | dw] <id> - remove a watch with id\n"
+    "[exit | quit] - exit the debugging program";
 }
 /*
 std::map<const char*,int> argumentTable={

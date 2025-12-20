@@ -24,7 +24,7 @@ namespace BFtext
                     <<content.mismatchCol<<")"<<std::endl;
                 break;
             default:
-                os<<errMessage[static_cast<size_t>(typeID)]<<std::endl;
+                os<<*errMessage[static_cast<size_t>(typeID)]<<std::endl;
                 break;
         }
     }

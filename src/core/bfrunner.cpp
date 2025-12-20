@@ -34,20 +34,15 @@ int RunnerPointer::singlestep()
             putchar(*itpos);
             break;
         case '[':
+            if(*itpos==0)
+                codePointer=commands.begin()+(codePointer->get_match()-&commands[0])-1;
             bucketStack.push(codePointer);
             if(bucketStack.size()>stackSize)
                 status=BFtext::ErrorType::memoryOF;
             break;
         case ']':
-            if(bucketStack.empty())
-            {
-                status=BFtext::ErrorType::bucketMATCH;
-                details.mismatchCol=codePointer->get_col();
-                details.mismatchRow=codePointer->get_row();
-                break;
-            }
             if(*itpos)
-                codePointer=bucketStack.top()-1;
+                codePointer=commands.begin()+(codePointer->get_match()-&commands[0])-1;
             else
             {
                 stackTop=bucketStack.top();
@@ -82,6 +77,8 @@ bool RunnerPointer::loadFile(const char *filePath,const char *progName)
     char cur;
     int currow=1,curcol=1,i;
     while(fin.get(cur))
+    {
+        sourceCode+=cur;
         switch(cur)
         {
             case '\t':
@@ -92,11 +89,55 @@ bool RunnerPointer::loadFile(const char *filePath,const char *progName)
                 ++currow;
                 curcol=1;
                 break;
-            default:
+            case '+': case '-': case '>': case '<':
+            case '[': case ']': case ',': case '.':
                 commands.emplace_back(currow,curcol,cur);
                 ++curcol;
                 break;
+            default:
+                break;
         }
+    }
+    std::stack<Instructer *> bracket;
+    Instructer *temp;
+    bool unmatch=false;
+    for(auto &ins:commands)
+    {
+        switch(ins.get_operate())
+        {
+            case '[':
+                bracket.push(&ins);
+                break;
+            case ']':
+                if(bracket.empty())
+                {
+                    details.mismatchCol=ins.get_col();
+                    details.mismatchRow=ins.get_row();
+                    unmatch=true;
+                    break;
+                }
+                temp=bracket.top();
+                ins.set_match(temp);
+                temp->set_match(&ins);
+                bracket.pop();
+                break;
+            default:
+                break;
+        }
+        if(unmatch)
+            break;
+    }
+    if(!bracket.empty())
+    {
+        details.mismatchCol=commands.back().get_col();
+        details.mismatchRow=commands.back().get_row();
+        unmatch=true;
+    }
+    if(unmatch)
+    {
+        BFtext::printFatalError(BFtext::ErrorType::bucketMATCH,details);
+        return false;
+    }
     codePointer=commands.begin();
     return true;
 }

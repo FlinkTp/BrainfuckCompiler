@@ -5,6 +5,9 @@
 #include <sstream>
 constructCFG concfg;
 std::map<std::string,CommandHandler> commandTable;
+std::stringstream dbgiss;
+std::ostringstream dbgoss;
+static std::vector<std::string> specialCommands={"stat","a","exit","quit","wo","watchoutput"};
 static void initializeHandler()
 {
     commandTable["a"]=
@@ -25,7 +28,7 @@ static void initializeHandler()
     commandTable["help"]=[&](DebuggerRunPointer&,const std::vector<std::string>&){
         std::cout<<BFtext::debugHelp<<std::endl;
     };
-    commandTable["x"]=
+    commandTable["x"]=commandTable["c"]=
     commandTable["continue"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>&){
         int tmp=dbgMain.runContinue();
         int ret=dbgMain.checkStatus(tmp);
@@ -82,6 +85,14 @@ static void initializeHandler()
             else
                 std::cout<<"Invalid operation."<<std::endl;
         }
+    };
+    commandTable["si"]=
+    commandTable["setinput"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>&){
+        dbgMain.setInput();
+    };
+    commandTable["wo"]=
+    commandTable["watchoutput"]=[&](DebuggerRunPointer& dbgMain,const std::vector<std::string>&){
+        dbgMain.watchOutput();
     };
 }
 static int setConfig(int opNum,char *value)
@@ -168,7 +179,8 @@ static int processInstruction(DebuggerRunPointer& drp,std::string operation)
         std::cout<<"Unknown command: "<<tokens[0]<<std::endl;
         return 2;
     }
-    if(drp.failed()&&tokens[0]!="stat")
+    if(drp.failed()&&std::find(specialCommands.cbegin(),
+        specialCommands.cend(),tokens[0])==specialCommands.cend())
     {
         std::cout<<"Invalid operation: program terminated or failed."<<std::endl;
         return 2;
@@ -184,13 +196,15 @@ int main(int argc,char *argv[])
     RunnerPointer dbgRunner(concfg);
     if(!dbgRunner.loadFile(argv[1],argv[0]))
         return -1;
-    DebuggerRunPointer dbgMain(&dbgRunner);
+    DebuggerRunPointer dbgMain(&dbgRunner,dbgiss,dbgoss);
     initializeHandler();
     std::string prev("");
     while(true)
     {
         std::string input;
         std::cout<<BFtext::debugPrompt<<std::flush;
+        if(!std::cin)
+            std::cin.clear();
         std::getline(std::cin,input);
         if(input==""&&prev!="")
             input=prev;

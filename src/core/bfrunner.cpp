@@ -1,6 +1,7 @@
 #include "bfconfig.hpp"
 #include "bftext.hpp"
 #include <fstream>
+#include <sstream>
 int RunnerPointer::singlestep()
 {
     if(itpos<memory.get())
@@ -32,6 +33,61 @@ int RunnerPointer::singlestep()
             break;
         case '.':
             putchar(*itpos);
+            break;
+        case '[':
+            if(*itpos==0)
+                codePointer=commands.begin()+(codePointer->get_match()-&commands[0])-1;
+            bucketStack.push(codePointer);
+            if(bucketStack.size()>stackSize)
+                status=BFtext::ErrorType::memoryOF;
+            break;
+        case ']':
+            if(*itpos)
+                codePointer=commands.begin()+(codePointer->get_match()-&commands[0])-1;
+            else
+            {
+                stackTop=bucketStack.top();
+                while(!bucketStack.empty()&&bucketStack.top()==stackTop)
+                    bucketStack.pop();
+            }
+            break;
+        default:
+            break;
+    }
+    ++codePointer;
+    return -1;
+}
+int RunnerPointer::singlestep(std::stringstream& iss,std::ostringstream& oss)
+{
+    if(itpos<memory.get())
+        return 0;
+    if(codePointer==commands.end())
+        return *itpos;
+    if(itpos==memory.get()+memorySize)
+    {
+        status=BFtext::ErrorType::memoryOF;
+        return -1;
+    }
+    decltype(codePointer) stackTop; 
+    switch(codePointer->get_operate())
+    {
+        case '+':
+            ++*itpos;
+            break;
+        case '-':
+            --*itpos;
+            break;
+        case '>':
+            ++itpos;
+            break;
+        case '<':
+            --itpos;
+            break;
+        case ',':
+            *itpos=iss.get();
+            break;
+        case '.':
+            oss.put(*itpos);
             break;
         case '[':
             if(*itpos==0)

@@ -1,6 +1,27 @@
 #include "bfdebugger.hpp"
 #include <algorithm>
 #include <iomanip>
+void DebuggerRunPointer::setInput(std::istream& is,std::ostream& os)
+{
+    os<<"=========================[INPUT]=========================="<<std::endl;
+    os<<cmdInput.str();
+    int ch;
+    std::string buffer;
+    while((ch=is.get())!=EOF) 
+    {
+        char c=static_cast<char>(ch);
+        buffer.push_back(ch);
+    }
+    is.clear();
+    cmdInput<<buffer;
+    os<<"=========================================================="<<std::endl;
+}
+void DebuggerRunPointer::watchOutput(std::ostream& os)
+{
+    os<<"=========================[OUTPUT]========================="<<std::endl;
+    os<<cmdOutput.str()<<std::endl;
+    os<<"=========================================================="<<std::endl;
+}
 bool DebuggerRunPointer::addBreakpoint(size_t bp)
 {
     watchStatus info(runner->get_debugger_stat(RunnerPointer::DebugPermission{}));
@@ -38,7 +59,7 @@ int DebuggerRunPointer::runSingleStep()
 {
     if(stat==DebugStatus::breakpoint)
         stat=DebugStatus::normal;
-    int resval=runner->singlestep();
+    int resval=runner->singlestep(cmdInput,cmdOutput);
     watchStatus info(runner->get_debugger_stat(RunnerPointer::DebugPermission{}));
     if(std::find(breakpoint.cbegin(),breakpoint.cend(),
         (info.rocodePointer-info.rocommands.begin()))!=breakpoint.cend())

@@ -74,6 +74,7 @@ public:
         friend class DebuggerRunPointer;
     };
     int singlestep();
+    int singlestep(std::stringstream& iss,std::ostringstream& oss);
     int runAll();
     bool loadFile(const char *filePath,const char *progName);
     BFtext::ErrorType get_status() const

@@ -32,10 +32,12 @@ namespace BFtext
     "[step | s] - run a single step (an instruction)\n"
     "[next | n] - run a single step (without showing status)\n"
     "[stat | a] - show status of current runner\n"
-    "[continue | x] - run until meet a breakpoint or an exception\n"
+    "[continue | x | c] - run until meet a breakpoint or an exception\n"
     "[watch | w] <mp> - watch a memory cell\n"
     "[debp | db] <id> - remove a breakpoint with id\n"
     "[dewatch | dw] <id> - remove a watch with id\n"
+    "[setinput | si] - set input (use EOF to end input)\n"
+    "[watchoutput | wo] - watch user screen to see output\n"
     "[exit | quit] - exit the debugging program";
 }
 /*
